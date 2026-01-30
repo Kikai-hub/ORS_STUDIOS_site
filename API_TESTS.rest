@@ -1,0 +1,113 @@
+### API Test Examples for ORIONIS Website
+
+@baseUrl = http://localhost:3000/api
+@token = 
+
+### 1. Регистрация нового пользователя
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "username": "player1",
+  "email": "player1@minecraft.com",
+  "password": "password123",
+  "minecraft_username": "Player1"
+}
+
+### 2. Вход в систему
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "player1",
+  "password": "password123"
+}
+
+### 3. Получить профиль (требуется токен)
+GET {{baseUrl}}/users/profile
+Authorization: Bearer {{token}}
+
+### 4. Обновить профиль
+PUT {{baseUrl}}/users/profile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "email": "newemail@minecraft.com",
+  "minecraft_username": "NewPlayerName"
+}
+
+### 5. Список всех пользователей (для администраторов)
+GET {{baseUrl}}/users/list
+Authorization: Bearer {{token}}
+
+### 6. Получить администратора для входа в админ-панель
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### 7. Получить всех пользователей (админ)
+GET {{baseUrl}}/admin/users
+Authorization: Bearer {{token}}
+
+### 8. Получить пользователя с привилегиями (замените 2 на ID пользователя)
+GET {{baseUrl}}/admin/users/2
+Authorization: Bearer {{token}}
+
+### 9. Выдать привилегию пользователю
+POST {{baseUrl}}/admin/grant-privilege
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "user_id": 2,
+  "privilege": "can_whitelist"
+}
+
+### 10. Отозвать привилегию
+DELETE {{baseUrl}}/admin/revoke-privilege
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "user_id": 2,
+  "privilege": "can_whitelist"
+}
+
+### 11. Изменить роль пользователя (замените 2 на ID пользователя)
+PUT {{baseUrl}}/admin/users/2/role
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "role": "moderator"
+}
+
+### 12. Получить логи админ действий
+GET {{baseUrl}}/admin/logs
+Authorization: Bearer {{token}}
+
+### 13. Получить информацию о сервере
+GET {{baseUrl}}/admin/server-info
+Authorization: Bearer {{token}}
+
+### 14. Обновить информацию о сервере
+PUT {{baseUrl}}/admin/server-info
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "server_name": "My Awesome Server",
+  "server_ip": "192.168.1.100",
+  "server_port": 25565,
+  "server_version": "1.20.1",
+  "max_players": 50,
+  "description": "Добро пожаловать на наш классный сервер!"
+}
+
+### 15. Проверка здоровья сервера
+GET {{baseUrl}}/health
