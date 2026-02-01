@@ -13,6 +13,7 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
 });
 
 function initializeDatabase() {
+  db.serialize(() => {
   // Таблица пользователей
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
@@ -182,6 +183,7 @@ function initializeDatabase() {
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )
   `);
+  });
 }
 
 db.serialize(() => {

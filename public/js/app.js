@@ -36,8 +36,260 @@ document.addEventListener('DOMContentLoaded', () => {
     // Загружаем информацию о сервере для главной страницы
     loadServerInfo();
     
+    // Инициализация анимации звезд
+    initStarButton();
+
+    // Инициализация анимации скролла
+    initScrollAnimation();
+
+    // Загрузка привилегий для страницы доната
+    renderPrivilegesList();
+    
     console.log('Инициализация завершена');
 });
+
+// --- Donate Section Logic --- //
+
+const PRIVILEGES_DATA = [
+    { id: 'general', name: 'General', price: 4999, colorClass: 'grad-general', desc: 'Самая высокая привилегия на сервере. Вы получаете полный контроль и уважение.' },
+    { id: 'koman', name: 'Koman', price: 3999, colorClass: 'grad-koman', desc: 'Командующий состав. Доступ к управлению игровыми событиями.' },
+    { id: 'spec', name: 'Spec', price: 2999, colorClass: 'grad-spec', desc: 'Специальное подразделение. Уникальные киты и возможности.' },
+    { id: 'kapt', name: 'Kapt', price: 2299, colorClass: 'grad-kapt', desc: 'Капитан отряда. Возможность создавать свои кланы бесплатно.' },
+    { id: 'snup', name: 'Snup', price: 1999, colorClass: 'grad-snup', desc: 'Снайпер. Доступ к дальнобойному оружию и маскировке.' },
+    { id: 'sapr', name: 'Sapr', price: 1299, colorClass: 'grad-sapr', desc: 'Сапер. Доступ к взрывчатке и разминированию.' },
+    { id: 'med', name: 'Med', price: 899, colorClass: 'grad-med', desc: 'Медик. Возможность лечить себя и других игроков.' },
+    { id: 'razv', name: 'Razv', price: 449, colorClass: 'grad-razv', desc: 'Разведчик. Увеличенная скорость и невидимость на радарах.' },
+    { id: 'serj', name: 'Serj', price: 249, colorClass: 'grad-serj', desc: 'Сержант. Начальный набор командных привилегий.' },
+    { id: 'solder', name: 'Solder', price: 99, colorClass: 'grad-solder', desc: 'Солдат. Базовый донат для поддержки сервера.' }
+];
+
+let selectedPrivilege = null;
+
+function renderPrivilegesList() {
+    const listContainer = document.getElementById('privilegesListContainer');
+    if (!listContainer) return;
+
+    listContainer.innerHTML = PRIVILEGES_DATA.map(priv => `
+        <div class="privilege-item" onclick="selectPrivilege('${priv.id}')" id="priv-item-${priv.id}">
+            <span class="privilege-name ${priv.colorClass} grad-text">${priv.name}</span>
+            <span class="privilege-price">${priv.price} ₽</span>
+        </div>
+    `).join('');
+}
+
+function selectPrivilege(id) {
+    selectedPrivilege = PRIVILEGES_DATA.find(p => p.id === id);
+    if (!selectedPrivilege) return;
+
+    // Update UI active state
+    document.querySelectorAll('.privilege-item').forEach(el => el.classList.remove('active'));
+    document.getElementById(`priv-item-${id}`).classList.add('active');
+
+    // Show Details Panel
+    document.querySelector('.privilege-placeholder').style.display = 'none';
+    const contentPanel = document.getElementById('privilegeContent');
+    contentPanel.style.display = 'flex';
+
+    // Update Content
+    const titleEl = document.getElementById('selectedPrivilegeTitle');
+    titleEl.textContent = selectedPrivilege.name;
+    titleEl.className = ''; // Reset classes
+    titleEl.classList.add(selectedPrivilege.colorClass); // Add gradient class
+    titleEl.classList.add('grad-text'); // Add animation class
+
+    document.getElementById('selectedPrivilegeDesc').innerHTML = `
+        <p>${selectedPrivilege.desc}</p>
+        <ul>
+            <li>Уникальный префикс в чате</li>
+            <li>Доступ к команде /fly в лобби</li>
+            <li>Сохранение инвентаря (частичное)</li>
+            <li>Приоритетный вход на сервер</li>
+        </ul>
+    `;
+    
+    document.getElementById('selectedPrivilegePrice').textContent = `${selectedPrivilege.price} ₽`;
+}
+
+function showDonate() {
+    showSection('donate');
+}
+
+function buyPrivilege() {
+    const modal = document.getElementById('buyModal');
+    const content = document.getElementById('buyModalContent');
+    const modalContent = modal.querySelector('.modal-content');
+
+    // Reset styles for modal content (remove any border)
+    modalContent.style.border = '1px solid var(--border-color)';
+    // Add glowing border effect matching the privilege color if selected
+    if (selectedPrivilege) {
+        // We can dynamically add a style or class, but let's stick to simple border for now
+        // or maybe use the primary color. Let's keep it standard.
+    }
+
+    modal.style.display = 'flex';
+
+    if (!token || !currentUser) {
+        content.innerHTML = `
+            <div class="buy-modal-auth-check">
+                <i class="fas fa-lock" style="font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+                <h3>Требуется авторизация</h3>
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">Для покупки привилегии необходимо войти в аккаунт.</p>
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <button onclick="switchModal('buyModal', 'loginModal')" class="btn btn-primary">Войти</button>
+                    <button onclick="switchModal('buyModal', 'registerModal')" class="btn btn-outline">Регистрация</button>
+                </div>
+            </div>
+        `;
+    } else {
+        content.innerHTML = `
+            <div class="buy-modal-user">
+                <h3 style="text-align: center; margin-bottom: 2rem;">Покупка <span class="${selectedPrivilege.colorClass} grad-text">${selectedPrivilege.name}</span></h3>
+                
+                <div class="promo-row">
+                    <div class="form-group">
+                        <label>Промокод:</label>
+                        <input type="text" placeholder="CODE2026">
+                    </div>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: var(--text-muted);">К оплате:</span>
+                    <span style="font-size: 1.5rem; font-weight: 700;">${selectedPrivilege.price} ₽</span>
+                </div>
+
+                <button onclick="processPayment()" class="btn btn-primary btn-large btn-block">
+                    <i class="fas fa-shopping-cart" style="margin-right: 0.5rem;"></i> Оплатить
+                </button>
+            </div>
+        `;
+    }
+}
+
+function processPayment() {
+    alert('Система оплаты в разработке!');
+    closeModal('buyModal');
+}
+
+function initScrollAnimation() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.1 }); // Trigger when 10% visible
+
+    document.querySelectorAll('.info-cards .card').forEach((card, index) => {
+        // Устанавливаем задержку через стиль, или используем CSS классы nth-child как сделано
+        observer.observe(card);
+    });
+}
+
+function initStarButton() {
+    const btn = document.querySelector('.star-btn');
+    if (!btn) return;
+
+    let intervalId = null;
+
+    btn.addEventListener('mouseenter', () => {
+        // Запускаем генерацию звезд
+        intervalId = setInterval(() => {
+            // Генерируем больше звезд за раз
+            createStar(btn);
+            createStar(btn);
+        }, 1000 / 30); // 30 раз в секунду (было 15)
+    });
+
+    btn.addEventListener('mouseleave', () => {
+        if (intervalId) clearInterval(intervalId);
+    });
+}
+
+function createStar(btn) {
+    const star = document.createElement('div');
+    star.classList.add('star-particle');
+    
+    // Размеры кнопки
+    const rect = btn.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    
+    // Случайная точка на периметре (примерно)
+    // 0: top, 1: right, 2: bottom, 3: left
+    const side = Math.floor(Math.random() * 4);
+    let x, y;
+    
+    const offset = 5; // Смещение внутрь или наружу
+
+    switch(side) {
+        case 0: // Top
+            x = Math.random() * width;
+            y = -offset;
+            break;
+        case 1: // Right
+            x = width + offset;
+            y = Math.random() * height;
+            break;
+        case 2: // Bottom
+            x = Math.random() * width;
+            y = height + offset;
+            break;
+        case 3: // Left
+            x = -offset;
+            y = Math.random() * height;
+            break;
+    }
+
+    star.style.left = `${x}px`;
+    star.style.top = `${y}px`;
+    
+    // Размер звезды
+    const size = Math.random() * 3 + 2; // 2-5px
+    star.style.width = `${size}px`;
+    star.style.height = `${size}px`;
+
+    btn.appendChild(star);
+
+    // Анимация полета
+    // Вектор движения от центра кнопки к точке появления
+    const centerX = width / 2;
+    const centerY = height / 2;
+    
+    let dirX = x - centerX;
+    let dirY = y - centerY;
+    
+    // Нормализация и скорость
+    const length = Math.sqrt(dirX*dirX + dirY*dirY);
+    const speed = Math.random() * 20 + 30; // Скорость вылета
+    
+    dirX = (dirX / length) * speed;
+    dirY = (dirY / length) * speed;
+
+    // Гравитация (если не снизу)
+    const gravity = side !== 2 ? 15 : 5; 
+    
+    // Messy route (случайное отклонение)
+    const angle = (Math.random() - 0.5) * 0.5; // rad
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const finalDirX = dirX * cos - dirY * sin;
+    const finalDirY = dirX * sin + dirY * cos;
+
+    // Web Animations API для производительности
+    const animation = star.animate([
+        { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+        { transform: `translate(${finalDirX}px, ${finalDirY + gravity}px) scale(0)`, opacity: 0 }
+    ], {
+        duration: 750,
+        easing: 'ease-out'
+    });
+
+    animation.onfinish = () => {
+        star.remove();
+    };
+}
+
 
 // Асинхронная загрузка постов без блокировки
 function loadPostsAsync() {
@@ -806,16 +1058,32 @@ function displayServerInfo(data) {
     const serverInfo = document.getElementById('serverInfo');
     if (serverInfo) {
         serverInfo.innerHTML = `
-            <div style="background: var(--card-bg); padding: 2rem; border-radius: 10px; box-shadow: 0 8px 25px rgba(0,0,0,0.4); border: 1px solid var(--border-color);">
-                <h3 style="color: var(--primary-color); margin-bottom: 1.5rem;">${data.server_name || 'ORIONIS'}</h3>
-                <div style="display: grid; gap: 1rem;">
-                    <p><strong>🌐 IP адрес:</strong> ${data.server_ip || 'Не установлен'}</p>
-                    <p><strong>🔌 Порт:</strong> ${data.server_port || 25565}</p>
-                    <p><strong>📦 Версия:</strong> ${data.server_version || '1.20'}</p>
-                    <p><strong>👥 Максимум игроков:</strong> ${data.max_players || 20}</p>
-                    <p><strong>📝 Описание:</strong></p>
-                    <p style="color: #666; line-height: 1.6;">${data.description || 'Добро пожаловать на наш сервер!'}</p>
+            <h3 class="server-info-title-gradient">${data.server_name || 'ORIONIS'}</h3>
+            <div class="server-info-grid">
+                <div class="info-item">
+                    <span class="info-label"><i class="fas fa-globe"></i> IP адрес</span>
+                    <span class="info-value" onclick="navigator.clipboard.writeText('${data.server_ip || 'play.example.com'}'); alert('IP скопирован!')" style="cursor: pointer; text-decoration: underline; text-decoration-style: dotted;">
+                        ${data.server_ip || 'play.example.com'}
+                    </span>
                 </div>
+                <div class="info-item">
+                    <span class="info-label"><i class="fas fa-plug"></i> Порт</span>
+                    <span class="info-value">${data.server_port || 25565}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label"><i class="fas fa-cube"></i> Версия</span>
+                    <span class="info-value">${data.server_version || '1.20'}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label"><i class="fas fa-users"></i> Онлаин</span>
+                    <span class="info-value">0 / ${data.max_players || 20}</span>
+                </div>
+            </div>
+            <div class="info-item" style="margin-top: 2rem; display: block;">
+                <span class="info-label"><i class="fas fa-align-left"></i> Описание</span>
+                <p style="color: var(--text-muted); line-height: 1.8; font-size: 1.1rem; margin-top: 1rem;">
+                    ${data.description || 'Добро пожаловать на наш сервер!'}
+                </p>
             </div>
         `;
         console.log('Информация о сервере отображена');

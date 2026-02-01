@@ -4,7 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minecraft Сервер</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/donate.css">
+    <link rel="stylesheet" href="css/modal-layout.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <nav class="navbar">
@@ -12,6 +18,7 @@
             <div class="logo" onclick="showHome()" style="cursor: pointer;">ORIONIS</div>
             <ul class="nav-menu" id="navMenu">
                 <li><a href="#" onclick="showHome()">Главная</a></li>
+                <li><a href="#" onclick="showDonate()">Донат</a></li>
                 <li><a href="#" onclick="showAbout()">О сервере</a></li>
             </ul>
             <div class="auth-buttons" id="authButtons">
@@ -30,10 +37,16 @@
         <!-- Главная страница -->
         <section id="home" class="section">
             <div class="hero" id="heroBanner">
-                <h1 id="heroTitle">Добро пожаловать на ORIONIS</h1>
-                <p id="heroSubtitle">Присоединяйтесь к нашему сообществу прямо сейчас</p>
-                <div class="hero-buttons">
-                    <button onclick="handleStartGame()" class="btn btn-primary btn-large">Начать игру</button>
+                <div class="hero-content">
+                    <h1 id="heroBrand">ORIONIS</h1>
+                    <h2 id="heroWelcome">Добро пожаловать</h2>
+                    <p id="heroSubtitle">Присоединяйтесь к нашему сообществу прямо сейчас</p>
+                    <div class="hero-buttons">
+                        <button onclick="handleStartGame()" class="btn btn-primary btn-large star-btn">
+                            <span>Начать игру</span>
+                            <div class="stars"></div>
+                        </button>
+                    </div>
                 </div>
             </div>
             <div class="info-cards">
@@ -56,6 +69,45 @@
                 <h2 style="margin-top: 3rem; margin-bottom: 2rem; text-align: center;">📰 Новости сервера</h2>
                 <div id="postsList" class="posts-grid">
                     <p style="text-align: center; padding: 2rem;">Загрузка новостей...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Донат -->
+        <section id="donate" class="section" style="display: none;">
+            <div class="container">
+                <h2 style="text-align: center; margin-bottom: 3rem;">💎 Привилегии</h2>
+                <div class="donate-container">
+                    <!-- Список привилегий -->
+                    <div class="privileges-list" id="privilegesListContainer">
+                        <!-- Будет заполнено JS -->
+                    </div>
+                    
+                    <!-- Детали привилегии -->
+                    <div class="privilege-details" id="privilegeDetailsPanel">
+                        <div class="privilege-placeholder">
+                            <i class="fas fa-gem" style="font-size: 4rem; margin-bottom: 1.5rem; color: var(--text-muted); opacity: 0.3;"></i>
+                            <p>Выберите привилегию из списка слева, чтобы посмотреть подробности</p>
+                        </div>
+                        <div class="privilege-content" id="privilegeContent" style="display: none;">
+                            <h3 id="selectedPrivilegeTitle">Название</h3>
+                            <div class="privilege-description" id="selectedPrivilegeDesc">
+                                <p>Здесь будет описание возможностей доната...</p>
+                                <ul>
+                                    <li>Возможность 1</li>
+                                    <li>Возможность 2</li>
+                                    <li>Возможность 3</li>
+                                </ul>
+                            </div>
+                            <div class="privilege-price-block">
+                                <span class="price-label">Цена:</span>
+                                <span class="price-value" id="selectedPrivilegePrice">0 ₽</span>
+                            </div>
+                            <div class="privilege-actions">
+                                <button onclick="buyPrivilege()" class="btn btn-primary btn-large btn-block">Купить</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -344,8 +396,15 @@
                         <label>Пароль:</label>
                         <input type="password" id="loginPassword" required>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-block">Вход</button>
-                    <p class="form-hint">Нет аккаунта? <a href="#" onclick="switchModal('loginModal', 'registerModal')">Зарегистрируйтесь</a></p>
+                    
+                    <div class="modal-actions-row">
+                        <button type="submit" class="btn btn-primary">Вход</button>
+                        <div class="modal-switch-action">
+                            <span class="form-hint-text">Нет аккаунта?</span>
+                            <i class="fas fa-arrow-right"></i>
+                            <button type="button" onclick="switchModal('loginModal', 'registerModal')" class="btn btn-secondary btn-sm">Регистрация</button>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
@@ -372,8 +431,15 @@
                         <label>Имя в Minecraft (опционально):</label>
                         <input type="text" id="registerMinecraft">
                     </div>
-                    <button type="submit" class="btn btn-primary btn-block">Зарегистрироваться</button>
-                    <p class="form-hint">Уже есть аккаунт? <a href="#" onclick="switchModal('registerModal', 'loginModal')">Войдите</a></p>
+                    
+                    <div class="modal-actions-row">
+                        <button type="submit" class="btn btn-primary">Регистрация</button>
+                        <div class="modal-switch-action">
+                            <span class="form-hint-text">Уже есть?</span>
+                            <i class="fas fa-arrow-right"></i>
+                            <button type="button" onclick="switchModal('registerModal', 'loginModal')" class="btn btn-secondary btn-sm">Войти</button>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
@@ -387,6 +453,16 @@
             </div>
         </div>
     </main>
+
+    <!-- Модальное окно покупки -->
+    <div id="buyModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 450px;">
+            <span class="close" onclick="closeModal('buyModal')">&times;</span>
+            <div id="buyModalContent">
+                <!-- Будет заполнено JS в зависимости от авторизации -->
+            </div>
+        </div>
+    </div>
 
     <!-- Модальное окно для тикета -->
     <div id="ticketModal" class="modal" style="display: none;">
@@ -447,8 +523,10 @@
     </div>
     </div>
 
-    <footer>
-        <p>&copy; 2026 ORIONIS. Все права защищены.</p>
+    <footer class="site-footer">
+        <div class="footer-content">
+            <p>&copy; 2026 ORIONIS. Все права защищены.</p>
+        </div>
     </footer>
 
     <script src="js/app.js"></script>
