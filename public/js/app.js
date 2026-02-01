@@ -1057,7 +1057,7 @@ function displayServerInfo(data) {
             <div class="server-info-grid">
                 <div class="info-item">
                     <span class="info-label"><i class="fas fa-globe"></i> IP адрес</span>
-                    <span class="info-value" onclick="navigator.clipboard.writeText('${data.server_ip || 'play.example.com'}'); alert('IP скопирован!')" style="cursor: pointer; text-decoration: underline; text-decoration-style: dotted;">
+                    <span class="info-value" onclick="navigator.clipboard.writeText('${data.server_ip || 'play.example.com'}'); showNotification('IP сервера скопирован!', 'success')" style="cursor: pointer; text-decoration: underline; text-decoration-style: dotted;" title="Нажмите, чтобы скопировать">
                         ${data.server_ip || 'play.example.com'}
                     </span>
                 </div>
