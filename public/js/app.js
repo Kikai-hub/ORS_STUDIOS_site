@@ -335,12 +335,7 @@ function handleStartGame() {
     if (token && currentUser) {
         showProfile();
     } else {
-        const choice = confirm('Для начала игры необходимо авторизоваться.\n\nНажмите OK для регистрации или Отмена для входа в существующий аккаунт.');
-        if (choice) {
-            showRegister();
-        } else {
-            showLogin();
-        }
+        showLogin();
     }
 }
 
